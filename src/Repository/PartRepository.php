@@ -48,16 +48,16 @@ class PartRepository extends ServiceEntityRepository
         ];
     }
 
-    public function searchByName(?string $search): array
+    public function search(string $query): array
     {
-        $qb = $this->createQueryBuilder('p');
-
-        if ($search) {
-            $qb->andWhere('p.name LIKE :search')
-            ->setParameter('search', '%' . $search . '%');
-        }
-
-        return $qb->getQuery()->getResult();
+        return $this->createQueryBuilder('p')
+            ->select('p.id, p.name, p.reference, p.quantity, p.minQuantity')
+            ->where('p.name LIKE :q')
+            ->orWhere('p.reference LIKE :q')
+            ->setParameter('q', '%' . $query . '%')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getArrayResult();
     }
 
     // Rupture de stock

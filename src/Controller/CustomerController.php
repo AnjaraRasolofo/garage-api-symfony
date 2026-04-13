@@ -77,6 +77,35 @@ final class CustomerController extends AbstractController
         return new JsonResponse($data, Response::HTTP_OK);
     }
 
+    #[Route('/search', methods: ['GET'])]
+    public function search(Request $request, CustomerRepository $repo): JsonResponse
+    {
+        $query = trim($request->query->get('query', ''));
+
+        if ($query === '') {
+            return $this->json([]);
+        }
+
+        $customers = $repo->search($query);
+
+        $data = array_map(function ($c) {
+            return [
+                'id' => $c['id'],
+                'firstname' => $c['firstname'],
+                'lastname' => $c['lastname'],
+                'phone' => $c['phone'],
+                'email' => $c['email'],
+
+                // valeurs calculées sécurisées (si elles existent)
+                'vehiclesCount' => $c['vehiclesCount'] ?? 0,
+                'repairsInProgress' => $c['repairsInProgress'] ?? 0,
+                'unpaidInvoices' => $c['unpaidInvoices'] ?? 0,
+            ];
+        }, $customers);
+
+        return $this->json($data);
+    }
+
     #[Route('', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $em): JsonResponse 
     {

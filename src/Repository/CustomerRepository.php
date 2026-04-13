@@ -49,4 +49,27 @@ class CustomerRepository extends ServiceEntityRepository
         ];
     }
 
+    public function search(string $query): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.vehicles', 'v')
+            ->addSelect('v')
+            ->setMaxResults(20);
+
+        return $qb
+            ->where(
+                $qb->expr()->orX(
+                    'c.firstname LIKE :q',
+                    'c.lastname LIKE :q',
+                    'c.phone LIKE :q',
+                    'c.email LIKE :q',
+                    'v.number LIKE :q'
+                )
+            )
+            ->setParameter('q', '%' . $query . '%')
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 }

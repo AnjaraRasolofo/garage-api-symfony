@@ -25,7 +25,7 @@ class EmployeeRepository extends ServiceEntityRepository
             $qb->andWhere('
                 e.firstname LIKE :search OR
                 e.lastname LIKE :search OR
-                e.function LIKE :search
+                e.jobFunction LIKE :search
             ')
             ->setParameter('search', '%' . $search . '%');
         }
@@ -49,6 +49,18 @@ class EmployeeRepository extends ServiceEntityRepository
             'data' => $data,
             'total' => (int) $total
         ];
+    }
+
+    public function search(string $query): array
+    {
+        return $this->createQueryBuilder('e')
+            ->where('e.firstname LIKE :q')
+            ->orWhere('e.lastname LIKE :q')
+            ->orWhere('e.jobFunction LIKE :q')
+            ->setParameter('q', '%' . $query . '%')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getArrayResult();
     }
 
 }

@@ -45,16 +45,57 @@ final class EmployeeController extends AbstractController
         ], 200, [], ['groups' => 'employee:read']);
     }
 
-    #[Route('/{id}', methods: ['GET'])]
+    #[Route('/{id}', methods: ['GET'], requirements:['id' => '\d+'])]
     public function show($id, EmployeeRepository $repo): JsonResponse
     {
-        $employee = $repo->find($id);
+        try {
+            $employee = $repo->find($id);
 
-        if (!$employee) {
-            return $this->json(['message' => 'Employee not found'], 404);
+            if (!$employee) {
+                return $this->json([
+                    'message' => 'Employee not found'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            return $this->json($employee, Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'Une erreur est survenue',
+                'error' => $e->getMessage() // à enlever en prod si sensible
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
 
-        return $this->json($employee, Response::HTTP_OK);
+    #[Route('/search', methods: ['GET'])]
+    public function search(Request $request, EmployeeRepository $repo): JsonResponse
+    {
+        try {
+            $query = trim($request->query->get('query', ''));
+
+            if ($query === '') {
+                return $this->json([]);
+            }
+
+            $employees = $repo->search($query);
+
+            $data = array_map(function ($e) {
+                return [
+                    'id' => $e['id'],
+                    'firstname' => $e['firstname'],
+                    'lastname' => $e['lastname'],
+                    'function' => $e['jobFunction'],
+                ];
+            }, $employees);
+
+            return $this->json($data);
+
+        } catch (\Throwable $e) {
+            return $this->json([
+                'message' => 'Erreur lors de la recherche des employés',
+                'debug' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('', methods: ['POST'])]
@@ -71,7 +112,7 @@ final class EmployeeController extends AbstractController
         $employee->setEmail($data['email'] ?? null);
         $employee->setPhone($data['phone'] ?? null);
         $employee->setAddress($data['address'] ?? null);
-        $employee->setFunction($data['function'] ?? null);
+        $employee->setJobFunction($data['function'] ?? null);
         $employee->setSalary($data['salary'] ?? null);
         $employee->setStatus($data['status'] ?? null);
         $employee->setNumber($data['number'] ?? null);

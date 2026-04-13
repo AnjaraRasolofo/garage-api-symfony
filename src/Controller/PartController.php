@@ -49,16 +49,6 @@ final class PartController extends AbstractController
         
     }
 
-    #[Route('/search', methods: ['GET'])]
-    public function search(Request $request, PartRepository $repo): JsonResponse
-    {
-        $search = $request->query->get('search');
-
-        $parts = $repo->searchByName($search);
-
-        return $this->json($parts, 200, [], ['groups' => 'part:read']);
-    }
-
     #[Route('/list', methods: ['GET'])]
     public function list(PartRepository $repo): JsonResponse
     {
@@ -74,6 +64,20 @@ final class PartController extends AbstractController
         }, $parts);
 
         return new JsonResponse($data, Response::HTTP_OK);
+    }
+
+    #[Route('/search', methods: ['GET'])]
+    public function search(Request $request, PartRepository $repo): JsonResponse
+    {
+        $query = trim($request->query->get('query', ''));
+
+        if ($query === '') {
+            return $this->json([]);
+        }
+
+        $parts = $repo->search($query);
+
+        return $this->json($parts);
     }
 
     #[Route('/{id}', methods: ['GET'], requirements: ['id' => '\d+'])]
