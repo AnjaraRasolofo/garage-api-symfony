@@ -37,7 +37,7 @@ class Employee
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups('employee:read')]
-    private ?string $function = null;
+    private ?string $jobFunction = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $hiringDate = null;
@@ -122,14 +122,14 @@ class Employee
         return $this;
     }
 
-    public function getFunction(): ?string
+    public function getJobFunction(): ?string
     {
-        return $this->function;
+        return $this->jobFunction;
     }
 
-    public function setFunction(?string $function): static
+    public function setJobFunction(?string $jobFunction): static
     {
-        $this->function = $function;
+        $this->jobFunction = $jobFunction;
 
         return $this;
     }
