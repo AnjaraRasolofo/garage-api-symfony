@@ -48,28 +48,46 @@ class PartRepository extends ServiceEntityRepository
         ];
     }
 
-    //    /**
-    //     * @return Part[] Returns an array of Part objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function searchByName(?string $search): array
+    {
+        $qb = $this->createQueryBuilder('p');
 
-    //    public function findOneBySomeField($value): ?Part
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($search) {
+            $qb->andWhere('p.name LIKE :search')
+            ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    // Rupture de stock
+    public function countOutOfStock(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.quantity = 0')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // Stock faible 
+    public function countLowStock(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.quantity > 0')
+            ->andWhere('p.quantity <= p.minQuantity')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // Total
+    public function countTotalParts(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

@@ -17,55 +17,42 @@ final class CustomerController extends AbstractController
     #[Route('', methods: ['GET'])]
     public function index(Request $request, CustomerRepository $repo): JsonResponse
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = max(1, (int) $request->query->get('limit', 20));
-        $search = $request->query->get('search', '');
+        try {
+            $page = max(1, (int) $request->query->get('page', 1));
+            $limit = max(1, (int) $request->query->get('limit', 20));
+            $search = $request->query->get('search', '');
 
-        $qb = $repo->createQueryBuilder('c');
+            $result = $repo->findPaginatedWithSearch($page, $limit, $search);
 
-        // filtre recherche
-        if (!empty($search)) {
-            $qb->andWhere('
-                c.firstname LIKE :search OR
-                c.lastname LIKE :search OR
-                c.type LIKE :search
-            ')
-            ->setParameter('search', '%' . $search . '%');
+            $customers = array_map(function ($c) {
+                return [
+                    'id' => $c->getId(),
+                    'firstname' => $c->getFirstname(),
+                    'lastname' => $c->getLastname(),
+                    'email' => $c->getEmail(),
+                    'phone' => $c->getPhone(),
+                    'type' => $c->getType()
+                ];
+            }, $result['data'] ?? []);
+
+            $total = (int) ($result['total'] ?? 0);
+
+            return $this->json([
+                'data' => $customers,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'total' => $total,
+                    'pages' => $limit > 0 ? ceil($total / $limit) : 1
+                ]
+            ], 200);
+
+        } catch (\Throwable $e) {
+            return $this->json([
+                'error' => 'Erreur serveur',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        // total filtré
-        $total = (clone $qb)
-            ->select('COUNT(c.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // pagination
-        $customers = $qb
-            ->orderBy('c.id', 'DESC')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        // format
-        $data = array_map(fn($c) => [
-            'id' => $c->getId(),
-            'firstname' => $c->getFirstname(),
-            'lastname' => $c->getLastname(),
-            'email' => $c->getEmail(),
-            'phone' => $c->getPhone(),
-            'type' => $c->getType()
-        ], $customers);
-
-        return $this->json([
-            'data' => $data,
-            'pagination' => [
-                'page' => $page,
-                'limit' => $limit,
-                'total' => (int) $total,
-                'pages' => ceil($total / $limit)
-            ]
-        ]);
     }
 
     #[Route('/{id}', methods: ['GET'], requirements: ['id' => '\d+'])]

@@ -24,15 +24,19 @@ class Employee
     private ?string $lastname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
+    #[Groups('employee:read')]
     private ?string $email = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Groups('employee:read')]
     private ?string $phone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('employee:read')]
     private ?string $address = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups('employee:read')]
     private ?string $function = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]

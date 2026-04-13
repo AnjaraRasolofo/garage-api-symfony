@@ -90,15 +90,9 @@ final class VehicleController extends AbstractController
     }
 
     #[Route('/customer/{id}', methods: ['GET'])]
-    public function customerVehicles($id, Request $request, VehicleRepository $repo): JsonResponse
+    public function getByCustomer(int $id, VehicleRepository $repo): JsonResponse
     {
-        $customerId = $request->query->get('id');
-
-        if ($customerId) {
-            $vehicles = $repo->findBy(['customer' => $customerId]);
-        } else {
-            $vehicles = $repo->findAll();
-        }
+        $vehicles = $repo->findByCustomer($id);
 
         $data = array_map(function ($v) {
             return [
@@ -109,7 +103,7 @@ final class VehicleController extends AbstractController
             ];
         }, $vehicles);
 
-        return $this->json($data);
+        return $this->json($data, 200);
     }
 
     #[Route('', methods: ['POST'])]

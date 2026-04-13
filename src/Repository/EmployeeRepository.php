@@ -16,28 +16,39 @@ class EmployeeRepository extends ServiceEntityRepository
         parent::__construct($registry, Employee::class);
     }
 
-    //    /**
-    //     * @return Employee[] Returns an array of Employee objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findPaginatedWithSearch( int $page, int $limit, string $search): array
+    {
+        $qb = $this->createQueryBuilder('e');
 
-    //    public function findOneBySomeField($value): ?Employee
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        // Recherche par nom ou poste
+        if (!empty($search)) {
+            $qb->andWhere('
+                e.firstname LIKE :search OR
+                e.lastname LIKE :search OR
+                e.function LIKE :search
+            ')
+            ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Total filtré
+        $totalQb = clone $qb;
+        $total = $totalQb
+            ->select('COUNT(e.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Data paginée
+        $data = $qb
+            ->orderBy('e.id', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => (int) $total
+        ];
+    }
+
 }

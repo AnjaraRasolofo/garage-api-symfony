@@ -14,31 +14,24 @@ class Customer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['vehicle:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['vehicle:read'])]
     private ?string $type = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['vehicle:read'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['vehicle:read'])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['vehicle:read'])]
     private ?string $phone = null;
 
     #[ORM\Column(length: 150, nullable: true)]
-    #[Groups(['vehicle:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['vehicle:read'])]
     private ?string $address = null;
 
     /**

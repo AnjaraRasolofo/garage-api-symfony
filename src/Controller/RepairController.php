@@ -65,6 +65,45 @@ final class RepairController extends AbstractController
         ]);
     }
 
+    #[Route('/stats', methods: ['GET'])]
+    public function repairStats(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $filter = $request->query->get('filter', 'day');
+
+        $qb = $em->createQueryBuilder()
+            ->select('COUNT(DISTINCT r.vehicle) as total')
+            ->from(Repair::class, 'r');
+
+        $now = new \DateTime();
+
+        if ($filter === 'day') {
+            $qb->where('DATE(r.date) = :today')
+            ->setParameter('today', $now->format('Y-m-d'));
+        }
+
+        if ($filter === 'week') {
+            $start = (clone $now)->modify('monday this week')->setTime(0,0,0);
+            $end = (clone $start)->modify('+6 days')->setTime(23,59,59);
+
+            $qb->where('r.date BETWEEN :start AND :end')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end);
+        }
+
+        if ($filter === 'month') {
+            $qb->where('MONTH(r.date) = :month')
+            ->andWhere('YEAR(r.date) = :year')
+            ->setParameter('month', $now->format('m'))
+            ->setParameter('year', $now->format('Y'));
+        }
+
+        $result = $qb->getQuery()->getSingleScalarResult();
+
+        return $this->json([
+            'total' => (int)$result
+        ]);
+    }
+
     #[Route('/{id}', methods: ['GET'])]
     public function show(int $id, RepairRepository $repo): JsonResponse
     {

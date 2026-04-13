@@ -91,7 +91,7 @@ class Repair
 
         return $this;
     }
-
+    
     /**
      * @return Collection<int, RepairLine>
      */

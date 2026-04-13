@@ -16,10 +16,33 @@ use Symfony\Component\Routing\Attribute\Route;
 final class EmployeeController extends AbstractController
 {
     #[Route('', methods: ['GET'])]
-    public function index(EmployeeRepository $repo): JsonResponse
+    public function index(Request $request, EmployeeRepository $repo): JsonResponse
     {
-        $employees = $repo->findAll();
-        return $this->json($employees, Response::HTTP_OK);
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = max(1, (int) $request->query->get('limit', 20));
+        $search = $request->query->get('search', '');
+
+        $result = $repo->findPaginatedWithSearch( $page, $limit, $search);
+
+        $employees = array_map(fn($c) => [
+            'id' => $c->getId(),
+            'firstname' => $c->getFirstname(),
+            'lastname' => $c->getLastname(),
+            'address' => $c->getAddress(),
+            'email' => $c->getEmail(),
+            'phone' => $c->getPhone(),
+            'function' => $c->getFunction()
+        ], $result['data']);
+
+        return $this->json([
+            'data' => $employees,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $result['total'],
+                'pages' => ceil($result['total'] / $limit)
+            ]
+        ], 200, [], ['groups' => 'employee:read']);
     }
 
     #[Route('/{id}', methods: ['GET'])]

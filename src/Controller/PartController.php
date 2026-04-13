@@ -49,6 +49,16 @@ final class PartController extends AbstractController
         
     }
 
+    #[Route('/search', methods: ['GET'])]
+    public function search(Request $request, PartRepository $repo): JsonResponse
+    {
+        $search = $request->query->get('search');
+
+        $parts = $repo->searchByName($search);
+
+        return $this->json($parts, 200, [], ['groups' => 'part:read']);
+    }
+
     #[Route('/list', methods: ['GET'])]
     public function list(PartRepository $repo): JsonResponse
     {
