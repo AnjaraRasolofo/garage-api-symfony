@@ -31,7 +31,7 @@ final class EmployeeController extends AbstractController
             'address' => $c->getAddress(),
             'email' => $c->getEmail(),
             'phone' => $c->getPhone(),
-            'function' => $c->getFunction()
+            'function' => $c->getJobFunction()
         ], $result['data']);
 
         return $this->json([
