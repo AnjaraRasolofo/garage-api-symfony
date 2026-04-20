@@ -69,6 +69,31 @@ final class VehicleController extends AbstractController
             return new JsonResponse(null, Response::HTTP_NOT_FOUND);
         }
 
+        // 🔹 Factures liées (si relation existante)
+        $invoices = [];
+        /*foreach ($vehicle->getInvoices() ?? [] as $invoice) {
+            $invoices[] = [
+                'id' => $invoice->getId(),
+                'number' => $invoice->getInvoiceNumber(),
+                'total' => $invoice->getTotal(),
+                'date' => $invoice->getInvoiceDate()?->format('Y-m-d'),
+                'status' => $invoice->getStatus(),
+            ];
+        }*/
+
+        $repairs = [];
+
+        foreach ($vehicle->getRepairs() as $repair) {
+            $repairs[] = [
+                'id' => $repair->getId(),
+                //'title' => $repair->getTitle(), // ex: "Vidange", "Freins"
+                //'description' => $repair->getDescription(),
+                'status' => $repair->getStatus(), // en cours / terminé
+                'date' => $repair->getDate()?->format('Y-m-d'),
+                'total' => $repair->getTotal(),
+            ];
+        }
+
         $data = [
             'id' => $vehicle->getId(),
             'brand' => $vehicle->getBrand(),
@@ -76,14 +101,7 @@ final class VehicleController extends AbstractController
             'number' => $vehicle->getNumber(),
             'year' => $vehicle->getYear(),
             'color' => $vehicle->getColor(),
-
-            // On inclut le customer MAIS sans ses vehicles
-            'customer' => $vehicle->getCustomer() ? [
-                'id' => $vehicle->getCustomer()->getId(),
-                'firstname' => $vehicle->getCustomer()->getFirstname(),
-                'lastname' => $vehicle->getCustomer()->getLastname(),
-                'name' => $vehicle->getCustomer()->getFirstname() . ' ' . $vehicle->getCustomer()->getLastname(),
-            ] : null,
+            'repairs' => $repairs
         ];
 
         return new JsonResponse($data, Response::HTTP_OK);

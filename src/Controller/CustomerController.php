@@ -64,6 +64,26 @@ final class CustomerController extends AbstractController
             return new JsonResponse(null, Response::HTTP_NOT_FOUND);
         }
 
+        $vehicles = [];
+        $invoices = [];
+
+        foreach ($customer->getVehicles() as $vehicle) {
+            $vehicles[] = [
+                'id' => $vehicle->getId(),
+                'brand' => $vehicle->getBrand(),
+                'model' => $vehicle->getModel(),
+                'number' => $vehicle->getNumber(),
+            ];
+        }
+
+        foreach ($customer->getInvoices() as $invoice) {
+            $invoices[] = [
+                'id' => $invoice->getId(),
+                'number' => $invoice->getNumber(),
+                'total' => $invoice->getTotal(),
+            ];
+        }
+
         $data = [
             'id' => $customer->getId(),
             'firstname' => $customer->getFirstname(),
@@ -71,7 +91,9 @@ final class CustomerController extends AbstractController
             'email' => $customer->getEmail(),
             'phone' => $customer->getPhone(),
             'address' => $customer->getAddress(),
-            'type' => $customer->getType()
+            'type' => $customer->getType(),
+            'vehicles' => $vehicles,
+            'invoices' => $invoices
         ];
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -96,7 +118,7 @@ final class CustomerController extends AbstractController
                 'phone' => $c['phone'],
                 'email' => $c['email'],
 
-                // valeurs calculées sécurisées (si elles existent)
+                // valeurs calculées sécurisées avec des valeurs par défaut
                 'vehiclesCount' => $c['vehiclesCount'] ?? 0,
                 'repairsInProgress' => $c['repairsInProgress'] ?? 0,
                 'unpaidInvoices' => $c['unpaidInvoices'] ?? 0,

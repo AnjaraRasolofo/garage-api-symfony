@@ -69,9 +69,13 @@ class Vehicle
     #[ORM\OneToMany(targetEntity: Repair::class, mappedBy: 'vehicle')]
     private Collection $repairs;
 
+    #[ORM\OneToMany(targetEntity: Invoice::class, mappedBy: 'vehicle')]
+    private Collection $invoices;
+
     public function __construct()
     {
         $this->repairs = new ArrayCollection();
+        $this->invoices = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -263,5 +267,10 @@ class Vehicle
         }
 
         return $this;
+    }
+
+    public function getInvoices(): Collection
+    {
+        return $this->invoices;
     }
 }
